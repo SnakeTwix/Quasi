@@ -92,7 +92,6 @@ export class ExtendedClient extends Client {
     );
     eventFiles.forEach(async (path) => {
       const event: DEvent<keyof ClientEvents> = await this.importFile(path);
-      console.log(event);
       this.on(event.event, event.run);
     });
   }
