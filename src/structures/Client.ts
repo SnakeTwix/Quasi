@@ -1,5 +1,6 @@
 import {
   ApplicationCommandDataResolvable,
+  ApplicationCommandPermissionData,
   Client,
   ClientEvents,
   ClientOptions,
@@ -39,26 +40,19 @@ export class ExtendedClient extends Client {
     commands,
   }: RegisterCommandOptions) {
     try {
-      if (guildId) {
-        await this.restReq.put(
-          Routes.applicationGuildCommands(
-            process.env.clientId!,
-            process.env.guildId!
-          ),
-          {
-            body: commands,
-          }
-        );
-      } else {
-        await this.restReq.put(
-          Routes.applicationCommands(process.env.clientId!),
-          {
-            body: commands,
-          }
-        );
-      }
+      if (!guildId) return;
+      await this.restReq.put(
+        Routes.applicationGuildCommands(
+          process.env.clientId!,
+          process.env.guildId!
+        ),
+        {
+          body: commands,
+        }
+      );
     } catch (e) {
-      console.error(e);
+      // @ts-ignore
+      console.error(e.rawError.errors[0].options[0].type._errors);
       console.log('Something happened when registering commands');
     }
   }
@@ -73,17 +67,21 @@ export class ExtendedClient extends Client {
     commandFiles.forEach(async (path) => {
       const command: CommandType = await this.importFile(path);
 
-      if (!command.name) return;
+      const commandName = command.data.name;
+      if (!commandName) return;
 
-      this.commands.set(command.name, command);
-      slashCommands.push(command);
+      this.commands.set(commandName, command);
+
+      slashCommands.push(command.data.toJSON());
     });
 
-    this.once('ready', () => {
-      this.registerCommands({
+    this.once('ready', async () => {
+      await this.registerCommands({
         commands: slashCommands,
         guildId: process.env.guildId,
       });
+
+      await this.addCommandPermissions();
     });
 
     // Register Events
@@ -93,6 +91,31 @@ export class ExtendedClient extends Client {
     eventFiles.forEach(async (path) => {
       const event: DEvent<keyof ClientEvents> = await this.importFile(path);
       this.on(event.event, event.run);
+    });
+  }
+
+  private async addCommandPermissions() {
+    // Add permissions to commands
+    const commands = await this.guilds.cache
+      .get(process.env.guildId!)
+      ?.commands.fetch();
+
+    commands?.forEach((command) => {
+      let permissions = this.commands.get(command.name)?.permissions;
+
+      if (!permissions) return;
+
+      const fullPermissions = permissions.map<ApplicationCommandPermissionData>(
+        (permission) => ({
+          id: permission,
+          permission: true,
+          type: 'ROLE',
+        })
+      );
+
+      command.permissions.add({
+        permissions: fullPermissions,
+      });
     });
   }
 }

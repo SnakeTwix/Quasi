@@ -1,5 +1,5 @@
+import { SlashCommandBuilder } from '@discordjs/builders';
 import {
-  ChatInputApplicationCommandData,
   CommandInteraction,
   CommandInteractionOptionResolver,
   GuildMember,
@@ -16,7 +16,9 @@ type RunFunction = (options: RunOptions) => any;
 
 export type CommandType = {
   run: RunFunction;
-} & ChatInputApplicationCommandData;
+  permissions?: string[];
+  data: SlashCommandBuilder;
+};
 
 export interface ExtendedInteraction extends CommandInteraction {
   member: GuildMember;
