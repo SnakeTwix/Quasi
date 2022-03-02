@@ -1,4 +1,5 @@
 import { SlashCommandBuilder } from '@discordjs/builders';
+import { modRoles } from '../../config';
 import { Command } from '../../structures/Command';
 
 export default new Command({
@@ -35,4 +36,5 @@ export default new Command({
       ephemeral: true,
     });
   },
+  permissions: modRoles,
 });

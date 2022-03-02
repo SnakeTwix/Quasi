@@ -3,7 +3,7 @@ export function filterString(string: string, regex: RegExp): string {
   const specChars = string.match(regex)!.join('');
   let newName = string.replaceAll(regex, '') + specChars;
 
-  // If the name consists only of special characters, then sets it to "Unkown programmer"
+  // If the name consists only of special characters, then sets it to ""
   if (newName.length === specChars.length) newName = '';
 
   return newName;

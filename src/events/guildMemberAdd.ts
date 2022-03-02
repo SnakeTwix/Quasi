@@ -3,6 +3,7 @@ import { getName } from '../lib/getName';
 import { DEvent } from '../structures/DEvent';
 
 export default new DEvent('guildMemberAdd', (member) => {
+  if (!member.manageable) return;
   const displayName = member.displayName;
 
   if (!usernameRegex.test(displayName)) return;
