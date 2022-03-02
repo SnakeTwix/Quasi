@@ -1,5 +1,6 @@
 import { SlashCommandBuilder } from '@discordjs/builders';
 import { modRoles } from '../../config';
+import { promiseWrap } from '../../lib/promiseWrap';
 import { Command } from '../../structures/Command';
 
 export default new Command({
@@ -15,7 +16,9 @@ export default new Command({
     .setDefaultPermission(false),
   async run({ interaction }) {
     const user = interaction.options.getUser('user')!;
-    const guildMember = await interaction.guild?.members.fetch(user.id);
+    const { data: guildMember } = await promiseWrap(
+      interaction.guild?.members.fetch(user.id)
+    );
     const reason = (await interaction.options.getString('reason')) || '';
 
     if (!guildMember?.kickable)
@@ -24,12 +27,7 @@ export default new Command({
         ephemeral: true,
       });
 
-    await guildMember.kick(reason).catch(() => {
-      interaction.reply({
-        content: `Couldn't kick ${user.tag}`,
-        ephemeral: true,
-      });
-    });
+    await guildMember.kick(reason);
 
     interaction.reply({
       content: `Kicked ${user.tag}`,

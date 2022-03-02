@@ -3,6 +3,7 @@ import { modRoles } from '../../config';
 import { Command } from '../../structures/Command';
 import ms from 'ms';
 import { Collection, TextChannel } from 'discord.js';
+import { promiseWrap } from '../../lib/promiseWrap';
 
 export default new Command({
   data: new SlashCommandBuilder()
@@ -26,9 +27,18 @@ export default new Command({
   permissions: modRoles,
   async run({ interaction }) {
     const user = interaction.options.getUser('user')!;
-    const guildMember = await interaction.guild?.members.fetch(user.id)!;
+    const { data: guildMember } = await promiseWrap(
+      interaction.guild?.members.fetch(user.id)
+    );
+
     const reason = interaction.options.getString('reason') ?? 'None';
     const duration = interaction.options.getString('msg_time') ?? '0';
+
+    if (!guildMember?.bannable)
+      return interaction.reply({
+        content: `Couldn't ban ${user.tag}`,
+        ephemeral: true,
+      });
 
     const durationNum = duration
       .split(' ')
@@ -41,11 +51,7 @@ export default new Command({
       });
     }
 
-    if (!guildMember.bannable)
-      return interaction.reply({
-        content: `Couldn't ban ${user.tag}`,
-        ephemeral: true,
-      });
+    console.log(guildMember.bannable);
 
     await interaction.guild?.members.ban(guildMember, {
       reason,

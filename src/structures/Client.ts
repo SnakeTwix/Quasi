@@ -52,7 +52,7 @@ export class ExtendedClient extends Client {
       );
     } catch (e) {
       // @ts-ignore
-      console.error(e.rawError.errors[0].options[0].type._errors);
+      console.error(e.rawError.errors[0]);
       console.log('Something happened when registering commands');
     }
   }
