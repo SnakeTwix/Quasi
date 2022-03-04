@@ -4,7 +4,7 @@ import { DEvent } from '../structures/DEvent';
 
 export default new DEvent('guildMemberAdd', (member) => {
   if (!member.manageable) return;
-  const displayName = member.displayName;
+  const displayName = member.displayName.replaceAll(/[-,_,.]+/g, ' ');
 
   if (!usernameRegex.test(displayName)) return;
 

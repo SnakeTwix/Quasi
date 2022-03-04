@@ -4,7 +4,7 @@ import { getName } from '../lib/getName';
 
 export default new DEvent('guildMemberUpdate', (oldMember, newMember) => {
   if (!newMember.manageable) return;
-  const displayName = newMember.displayName;
+  let displayName = newMember.displayName.replaceAll(/[-,_,.]+/g, ' ');
 
   if (!usernameRegex.test(displayName)) return;
 
